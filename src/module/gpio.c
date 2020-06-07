@@ -9,9 +9,17 @@
 #include <errno.h>
 #include "../common/typedef.h"
 
-#define GPIO_BASE_REG_ADDR 0x7E215000	/* GPIO Register base address */
-#define GPLEV0_OFFSET (unsigned long)0x34
-#define GPLEV1_OFFSET (unsigned long)0x35
+#define GPIO_BASE_REG_ADDR 0x7E200000	/* GPIO Register base address */
+#define GPFSEL0_OFFSET (volatile unsigned int)0x00
+#define GPLEV0_OFFSET  (volatile unsigned int)0x34
+#define GPLEV1_OFFSET  (volatile unsigned int)0x38
+#define GPSET0_OFFSET  (volatile unsigned int)0x1C
+#define GPSET1_OFFSET  (volatile unsigned int)0x20
+
+#define GPLEV0 *(gpio + GPLEV0_OFFSET)
+#define GPLEV1 *(gpio + GPLEV1_OFFSET)
+#define GPSET0 *(gpio + GPSET0_OFFSET)
+#define GPSET1 *(gpio + GPSET1_OFFSET)
 
 #define BLOCK_SIZE 4096
 #define PAGE_SIZE  4096
@@ -25,28 +33,64 @@ static int mem_fd = 0;
 
 void gpio_init( void )
 {
-
+	/* Mapping */
+	gpio = gpio_mapping(GPIO_BASE_REG_ADDR);
 } 
 
-level gpio_get_signal( void )
+level gpio_get_signal( unsigned int reg_number, unsigned int bit_number )
 {
-	volatile unsigned int* gpio0;
-	volatile unsigned int* gpio1;
+	unsigned int reg = 0x00000000;
+	level ret = LOW;
 	
-	printf("call gpio_get_signal()\n");
-	gpio = gpio_mapping(GPIO_BASE_REG_ADDR);
-	gpio0 = gpio = (volatile unsigned int *)GPLEV0_OFFSET;
-	gpio0 = gpio = (volatile unsigned int *)GPLEV1_OFFSET;
-	printf("GPIO(0):       %d\n", gpio0);
-	printf("GPIO(1):       %d\n", gpio1);
+	switch( reg_number )
+	{
+		/* GPLEV0 */
+		case 0:
+			reg = GPLEV0;
+			break;
+		/* GPLEV1 */
+		case 1:
+			reg = GPLEV1;
+			break;
+		/* Exception */
+		default:
+			perror("internal function error!!");
+			break;
+	}
+	
+	if( ( (reg) && (0x00000001 << bit_number) ) == 0 )
+	{
+		ret = LOW;
+	}
+	else
+	{
+		ret = HIGH;
+	}
 
-	return LOW;
+	return ret;
 }
 
-level gpio_set_signal( level l )
+void gpio_set_signal( unsigned int reg_number, unsigned int bit_number, level l )
 {
- printf("call gpio_cet_signal()\n");
- return LOW;
+	unsigned int reg = 0x00000000;
+	
+	switch( reg_number )
+	{
+		/* GPSET0 */
+		case 0:
+			reg = GPSET0;
+			break;
+		/* GPSET1 */
+		case 1:
+			reg = GPSET1;
+			break;
+		/* Exception */
+		default:
+			perror("internal function error!!");
+			break;
+	}
+	
+	reg = reg | (0x00000001 << bit_number);
 }
 
 static volatile unsigned int* gpio_mapping( int base_addr )

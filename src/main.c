@@ -8,6 +8,7 @@
 void main(void)
 {
 	printf("Theodosius embarkings on!\n");
-	gpio_get_signal();
+	gpio_init();
+	gpio_get_signal( 0, 0, 0 );
 	return;
 }
