@@ -78,63 +78,40 @@ char gpioToOutput( unsigned char gpio_n )
 	return gpioSetInOut( gpio_n, GPIO_OUTPUT );
 }
 
-
-
-level gpioGetSignal( unsigned int reg_number, unsigned int bit_number )
+char gpioToHigh( unsigned char gpio_n )
 {
-	unsigned int reg = 0x00000000;
-	level ret = LOW;
-	
-	switch( reg_number )
+	/* Under Construction */
+	/* Validation of input gpio_n */
+	if( gpio_n >= TOTAL_NUM_OF_GPIOs )
 	{
-		/* GPLEV0 */
-		case 0:
-			reg = GPLEV0;
-			break;
-		/* GPLEV1 */
-		case 1:
-			reg = GPLEV1;
-			break;
-		/* Exception */
-		default:
-			perror("internal function error!!");
-			break;
+		printf("[FATAL] gpioSetInOut:Too big gpio_n was given.\n");
+		return -1;
 	}
 	
-	if( ( (reg) && (0x00000001 << bit_number) ) == 0 )
+	if( is_open == FALSE )
 	{
-		ret = LOW;
+		printf("[FATAL] gpioSetInOut:There was an access to GPIO although GPIO module was not opend.\n");
+		return -1;
 	}
-	else
-	{
-		ret = HIGH;
-	}
-
-	return ret;
 }
 
-void gpioSetSignal( unsigned int reg_number, unsigned int bit_number, level l )
+char gpioToLow( unsigned char gpio_n )
 {
-	unsigned int reg = 0x00000000;
-	
-	switch( reg_number )
+	/* Under Construction */
+	/* Validation of input gpio_n */
+	if( gpio_n >= TOTAL_NUM_OF_GPIOs )
 	{
-		/* GPSET0 */
-		case 0:
-			reg = GPSET0;
-			break;
-		/* GPSET1 */
-		case 1:
-			reg = GPSET1;
-			break;
-		/* Exception */
-		default:
-			perror("internal function error!!");
-			break;
+		printf("[FATAL] gpioSetInOut:Too big gpio_n was given.\n");
+		return -1;
 	}
 	
-	reg = reg | (0x00000001 << bit_number);
+	if( is_open == FALSE )
+	{
+		printf("[FATAL] gpioSetInOut:There was an access to GPIO although GPIO module was not opend.\n");
+		return -1;
+	}
 }
+
 
 static char gpioSetInOut( unsigned char gpio_n, char in_or_out )
 {
