@@ -11,7 +11,8 @@ void main(void)
 	printf("Theodosius embarkings on!\n");
 	//gpio_open();
 	mem_show( MEM_GPIO );
-	mem_show( MEM_SERIAL );
+	mem_show( MEM_AUX);
+	mem_show( MEM_EMMC );
 	printf("fin");
 	return;
 }
