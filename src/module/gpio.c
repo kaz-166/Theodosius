@@ -11,18 +11,19 @@
 #include "../common/typedef.h"
 #include "./mem.h"
 
+#define TOTAL_NUM_OF_GPIOs 41
 
-#define GPFSEL0_OFFSET (volatile unsigned long)0
-#define GPFSEL1_OFFSET (volatile unsigned long)1
-#define GPFSEL2_OFFSET (volatile unsigned long)2
-#define GPFSEL3_OFFSET (volatile unsigned long)3
-#define GPFSEL4_OFFSET (volatile unsigned long)4
-#define GPFSEL5_OFFSET (volatile unsigned long)5
-#define GPLEV0_OFFSET  (volatile unsigned long)0x0034
-#define GPLEV1_OFFSET  (volatile unsigned long)0x0038
-#define GPSET0_OFFSET  (volatile unsigned long)0x1c
+#define GPFSEL0_OFFSET (volatile unsigned long)0x00
+#define GPFSEL1_OFFSET (volatile unsigned long)0x04
+#define GPFSEL2_OFFSET (volatile unsigned long)0x08
+#define GPFSEL3_OFFSET (volatile unsigned long)0x1C
+#define GPFSEL4_OFFSET (volatile unsigned long)0x10
+#define GPFSEL5_OFFSET (volatile unsigned long)0x14
+#define GPLEV0_OFFSET  (volatile unsigned long)0x34
+#define GPLEV1_OFFSET  (volatile unsigned long)0x38
+#define GPSET0_OFFSET  (volatile unsigned long)0x1C
 #define GPSET1_OFFSET  (volatile unsigned long)0x20
-#define GPPCR0_OFFSET (volatile unsigned long)0x00E4
+#define GPPCR0_OFFSET (volatile unsigned long)0xE4
 
 #define GPFSEL0 *((volatile unsigned long*)(gpio + GPFSEL0_OFFSET))
 #define GPFSEL1 *((volatile unsigned long*)(gpio + GPFSEL1_OFFSET))
@@ -36,16 +37,45 @@
 #define GPSET1  *((volatile unsigned long*)(gpio + GPSET1_OFFSET))
 #define GPPCR0  *((volatile unsigned long*)(gpio + GPPCR0_OFFSET))
 
+#define GPFSEL(n) *((volatile unsigned long*)(gpio + 0x04*n))
+
+/* Prototype */
+static char gpioSetInOut( unsigned char gpio_n, char in_or_out );
+
 /* Global variables */
 volatile unsigned long gpio;
+static unsigned char is_open = FALSE;
 
-void gpio_open( void )
+void gpioOpen( void )
 {
 	/* Mapping */    
 	gpio = mem_mapping( MEM_GPIO );
+	is_open = TRUE;
 } 
 
-level gpio_get_signal( unsigned int reg_number, unsigned int bit_number )
+/****************************************************************************
+ * Input Parameters
+ * @gpio_n: Number of GPIO Pin
+ * (If you want to set GPIO3 to input mode for example, please set gpio_n=3.)
+ ****************************************************************************/
+char gpioToInput( unsigned char gpio_n )
+{
+	return gpioSetInOut( gpio_n, 1 );
+}
+
+/****************************************************************************
+ * Input Parameters
+ * @gpio_n: Number of GPIO Pin
+ * (If you want to set GPIO3 to output mode for example, please set gpio_n=3.)
+ ****************************************************************************/
+char gpioToOutput( unsigned char gpio_n )
+{
+	return gpioSetInOut( gpio_n, 0 );
+}
+
+
+
+level gpioGetSignal( unsigned int reg_number, unsigned int bit_number )
 {
 	unsigned int reg = 0x00000000;
 	level ret = LOW;
@@ -78,7 +108,7 @@ level gpio_get_signal( unsigned int reg_number, unsigned int bit_number )
 	return ret;
 }
 
-void gpio_set_signal( unsigned int reg_number, unsigned int bit_number, level l )
+void gpioSetSignal( unsigned int reg_number, unsigned int bit_number, level l )
 {
 	unsigned int reg = 0x00000000;
 	
@@ -99,4 +129,41 @@ void gpio_set_signal( unsigned int reg_number, unsigned int bit_number, level l 
 	}
 	
 	reg = reg | (0x00000001 << bit_number);
+}
+
+static char gpioSetInOut( unsigned char gpio_n, char in_or_out )
+{
+	unsigned char fsel_x = 0;
+	unsigned char fsel_bit = 0;
+	
+	/* Validation of input gpio_n */
+	if( gpio_n >= TOTAL_NUM_OF_GPIOs )
+	{
+		printf("[FATAL] gpioSetInOut:Too big gpio_n was given.\n");
+		return -1;
+	}
+	
+	if( is_open == FALSE )
+	{
+		printf("[FATAL] gpioSetInOut:There was an access to GPIO although GPIO module was not opend.\n");
+		return -1;
+	}
+	
+	fsel_x = gpio_n / 10;
+	fsel_bit = gpio_n % 10;
+	
+	if( in_or_out == 0 )	  /* Input Mode */
+	{
+		GPFSEL( fsel_x ) = GPFSEL( fsel_x ) | (1 << 3*fsel_bit);
+	}
+	else if( in_or_out == 1 ) /* Output Mode */
+	{
+		GPFSEL( fsel_x ) = GPFSEL( fsel_x ) & ~(1 << 3*fsel_bit);
+	}
+	else
+	{
+		printf("[FATAL] gpioSetInOut:Invalid input params.\n");
+		return -1;
+	}
+	return 0;
 }

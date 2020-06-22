@@ -37,11 +37,41 @@
 #define CLK_START_REG_ADDR (unsigned long)0x00101070
 #define CLK_END_REG_ADDR   (unsigned long)0x00101084
 
-volatile unsigned long mem_mapping( long base_addr )
+volatile unsigned long mem_mapping( MemoryAddress mem_addr )
 {
 	char *mem;
 	unsigned long map;
 	int mem_fd = 0;
+	long base_addr;
+	
+	switch( mem_addr )
+	{
+		case MEM_AUX:
+			base_addr = AUX_BASE_REG_ADDR;
+			break;
+		case MEM_BSC0:
+			base_addr = BSC0_BASE_REG_ADDR;
+			break;
+		case MEM_BSC1:
+			base_addr = BSC1_BASE_REG_ADDR;
+			break;
+		case MEM_BSC2:
+			base_addr = BSC2_BASE_REG_ADDR;
+			break;
+		case MEM_EMMC:
+			base_addr = EMMC_BASE_REG_ADDR;
+			break;
+		case MEM_GPIO:
+			base_addr = GPIO_BASE_REG_ADDR;
+			break;
+		case MEM_CLK:
+			base_addr = CLK_BASE_REG_ADDR;
+			break;
+		default:
+			printf("[FATAL] mem_mapping:Invalid MemoryAddress\n");
+			exit(-1);
+			break;
+	}
 	
 	if( !mem_fd )
 	{
@@ -81,7 +111,6 @@ volatile unsigned long mem_mapping( long base_addr )
 
 void mem_show( MemoryAddress mem_addr )
 {
-	unsigned long base_addr;
 	unsigned long start_addr;
 	unsigned long end_addr;
 	volatile unsigned long map;
@@ -89,43 +118,36 @@ void mem_show( MemoryAddress mem_addr )
 	switch( mem_addr )
 	{
 		case MEM_AUX:
-			base_addr  = AUX_BASE_REG_ADDR;
 			start_addr = AUX_START_REG_ADDR;
 			end_addr   = AUX_END_REG_ADDR;
 			printf("=================== AUX ===================\n");
 			break;
 		case MEM_BSC0:
-			base_addr  = BSC0_BASE_REG_ADDR;
 			start_addr = BSC0_START_REG_ADDR;
 			end_addr   = BSC0_END_REG_ADDR;
 			printf("=================== BSC0 ===================\n");
 			break;
 		case MEM_BSC1:
-			base_addr  = BSC1_BASE_REG_ADDR;
 			start_addr = BSC1_START_REG_ADDR;
 			end_addr   = BSC1_END_REG_ADDR;
 			printf("=================== BSC1 ===================\n");
 			break;
 		case MEM_BSC2:
-			base_addr  = BSC2_BASE_REG_ADDR;
 			start_addr = BSC2_START_REG_ADDR;
 			end_addr   = BSC2_END_REG_ADDR;
 			printf("=================== BSC2 ===================\n");
 			break;
 		case MEM_EMMC:
-			base_addr  = EMMC_BASE_REG_ADDR;
 			start_addr = EMMC_START_REG_ADDR;
 			end_addr   = EMMC_END_REG_ADDR;
 			printf("=================== EMMC ==================\n");
 			break;
 		case MEM_GPIO:
-			base_addr  = GPIO_BASE_REG_ADDR;
 			start_addr = GPIO_START_REG_ADDR;
 			end_addr   = GPIO_END_REG_ADDR;
 			printf("=================== GPIO ==================\n");
 			break;
 		case MEM_CLK:
-			base_addr  = CLK_BASE_REG_ADDR;
 			start_addr = CLK_START_REG_ADDR;
 			end_addr   = CLK_END_REG_ADDR;
 			printf("=================== CLKMAN ================\n");
@@ -134,7 +156,7 @@ void mem_show( MemoryAddress mem_addr )
 			break;
 	}
 	
-	map = mem_mapping( base_addr );
+	map = mem_mapping( mem_addr );
 	
 	for(int i = 0; i <= (end_addr-start_addr); i=i+4)
 	{

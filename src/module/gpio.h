@@ -1,5 +1,11 @@
+#ifndef GPIO_H
+#define GPIO_H
+
 #include "../common/typedef.h"
 
-extern void gpio_open( void );
-extern level gpio_get_signal( unsigned int reg_number, unsigned int bit_number );
-extern void gpio_set_signal( unsigned int reg_number, unsigned int bit_number, level l );
+extern void gpioOpen( void );
+extern char gpioToInput( unsigned char gpio_n );
+extern char gpioToOutput( unsigned char gpio_n );
+extern level gpioGetSignal( unsigned int reg_number, unsigned int bit_number );
+extern void gpioSetSignal( unsigned int reg_number, unsigned int bit_number, level l );
+#endif

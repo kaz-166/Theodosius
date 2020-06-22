@@ -1,4 +1,5 @@
-
+#ifndef MEM_H
+#define MEM_H
 
 typedef enum
 {
@@ -11,5 +12,6 @@ typedef enum
 	MEM_CLK
 } MemoryAddress;
 
-extern volatile unsigned long mem_mapping( long base_addr );
+extern volatile unsigned long mem_mapping( MemoryAddress base_addr );
 extern void mem_show( MemoryAddress mem_addr );
+#endif
