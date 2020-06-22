@@ -1,0 +1,9 @@
+# Ignore .o files
+/src/module/*.o
+/test/*.o
+
+# Ignore bin folder
+/bin
+
+# Ignore goutputstream files
+/src/module/.*

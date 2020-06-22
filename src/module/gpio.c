@@ -13,6 +13,9 @@
 
 #define TOTAL_NUM_OF_GPIOs 41
 
+#define GPIO_INPUT  0
+#define GPIO_OUTPUT 1
+
 #define GPFSEL0_OFFSET (volatile unsigned long)0x00
 #define GPFSEL1_OFFSET (volatile unsigned long)0x04
 #define GPFSEL2_OFFSET (volatile unsigned long)0x08
@@ -46,11 +49,13 @@ static char gpioSetInOut( unsigned char gpio_n, char in_or_out );
 volatile unsigned long gpio;
 static unsigned char is_open = FALSE;
 
-void gpioOpen( void )
+volatile unsigned long gpioOpen( void )
 {
 	/* Mapping */    
 	gpio = mem_mapping( MEM_GPIO );
 	is_open = TRUE;
+	
+	return gpio;
 } 
 
 /****************************************************************************
@@ -60,7 +65,7 @@ void gpioOpen( void )
  ****************************************************************************/
 char gpioToInput( unsigned char gpio_n )
 {
-	return gpioSetInOut( gpio_n, 1 );
+	return gpioSetInOut( gpio_n, GPIO_INPUT );
 }
 
 /****************************************************************************
@@ -70,7 +75,7 @@ char gpioToInput( unsigned char gpio_n )
  ****************************************************************************/
 char gpioToOutput( unsigned char gpio_n )
 {
-	return gpioSetInOut( gpio_n, 0 );
+	return gpioSetInOut( gpio_n, GPIO_OUTPUT );
 }
 
 
@@ -152,11 +157,11 @@ static char gpioSetInOut( unsigned char gpio_n, char in_or_out )
 	fsel_x = gpio_n / 10;
 	fsel_bit = gpio_n % 10;
 	
-	if( in_or_out == 0 )	  /* Input Mode */
+	if( in_or_out == GPIO_INPUT )	  /* Input Mode */
 	{
 		GPFSEL( fsel_x ) = GPFSEL( fsel_x ) | (1 << 3*fsel_bit);
 	}
-	else if( in_or_out == 1 ) /* Output Mode */
+	else if( in_or_out == GPIO_OUTPUT ) /* Output Mode */
 	{
 		GPFSEL( fsel_x ) = GPFSEL( fsel_x ) & ~(1 << 3*fsel_bit);
 	}

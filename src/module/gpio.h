@@ -3,7 +3,7 @@
 
 #include "../common/typedef.h"
 
-extern void gpioOpen( void );
+extern volatile unsigned long gpioOpen( void );
 extern char gpioToInput( unsigned char gpio_n );
 extern char gpioToOutput( unsigned char gpio_n );
 extern level gpioGetSignal( unsigned int reg_number, unsigned int bit_number );
