@@ -4,11 +4,14 @@
  */
 #include<stdio.h>
 #include "./common/typedef.h"
+#include "./module/mem.h"
 
 void main(void)
 {
 	printf("Theodosius embarkings on!\n");
-	gpio_init();
-	gpio_get_signal( 0, 0, 0 );
+	//gpio_open();
+	mem_show( MEM_GPIO );
+	mem_show( MEM_SERIAL );
+	printf("fin");
 	return;
 }

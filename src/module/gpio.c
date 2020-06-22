@@ -1,4 +1,5 @@
-/* 2020/5/27 Written by kaz-166
+/* 2020/5/27 Written b]
+ * written by kaz-166
  * gpio.c
  *
  */
@@ -8,33 +9,40 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "../common/typedef.h"
+#include "./mem.h"
 
-#define GPIO_BASE_REG_ADDR 0x7E200000	/* GPIO Register base address */
-#define GPFSEL0_OFFSET (volatile unsigned int)0x00
-#define GPLEV0_OFFSET  (volatile unsigned int)0x34
-#define GPLEV1_OFFSET  (volatile unsigned int)0x38
-#define GPSET0_OFFSET  (volatile unsigned int)0x1C
-#define GPSET1_OFFSET  (volatile unsigned int)0x20
 
-#define GPLEV0 *(gpio + GPLEV0_OFFSET)
-#define GPLEV1 *(gpio + GPLEV1_OFFSET)
-#define GPSET0 *(gpio + GPSET0_OFFSET)
-#define GPSET1 *(gpio + GPSET1_OFFSET)
+#define GPFSEL0_OFFSET (volatile unsigned long)0
+#define GPFSEL1_OFFSET (volatile unsigned long)1
+#define GPFSEL2_OFFSET (volatile unsigned long)2
+#define GPFSEL3_OFFSET (volatile unsigned long)3
+#define GPFSEL4_OFFSET (volatile unsigned long)4
+#define GPFSEL5_OFFSET (volatile unsigned long)5
+#define GPLEV0_OFFSET  (volatile unsigned long)0x0034
+#define GPLEV1_OFFSET  (volatile unsigned long)0x0038
+#define GPSET0_OFFSET  (volatile unsigned long)0x1c
+#define GPSET1_OFFSET  (volatile unsigned long)0x20
+#define GPPCR0_OFFSET (volatile unsigned long)0x00E4
 
-#define BLOCK_SIZE 4096
-#define PAGE_SIZE  4096
-
-static volatile unsigned int* gpio_mapping( int base_addr );
+#define GPFSEL0 *((volatile unsigned long*)(gpio + GPFSEL0_OFFSET))
+#define GPFSEL1 *((volatile unsigned long*)(gpio + GPFSEL1_OFFSET))
+#define GPFSEL2 *((volatile unsigned long*)(gpio + GPFSEL2_OFFSET))
+#define GPFSEL3 *((volatile unsigned long*)(gpio + GPFSEL3_OFFSET))
+#define GPFSEL4 *((volatile unsigned long*)(gpio + GPFSEL4_OFFSET))
+#define GPFSEL5 *((volatile unsigned long*)(gpio + GPFSEL5_OFFSET))
+#define GPLEV0  *((volatile unsigned long*)(gpio + GPLEV0_OFFSET))
+#define GPLEV1  *((volatile unsigned long*)(gpio + GPLEV1_OFFSET))
+#define GPSET0  *((volatile unsigned long*)(gpio + GPSET0_OFFSET))
+#define GPSET1  *((volatile unsigned long*)(gpio + GPSET1_OFFSET))
+#define GPPCR0  *((volatile unsigned long*)(gpio + GPPCR0_OFFSET))
 
 /* Global variables */
+volatile unsigned long gpio;
 
-volatile unsigned int* gpio;
-static int mem_fd = 0;
-
-void gpio_init( void )
+void gpio_open( void )
 {
-	/* Mapping */
-	gpio = gpio_mapping(GPIO_BASE_REG_ADDR);
+	/* Mapping */    
+	gpio = mem_mapping( MEM_GPIO );
 } 
 
 level gpio_get_signal( unsigned int reg_number, unsigned int bit_number )
@@ -91,45 +99,4 @@ void gpio_set_signal( unsigned int reg_number, unsigned int bit_number, level l 
 	}
 	
 	reg = reg | (0x00000001 << bit_number);
-}
-
-static volatile unsigned int* gpio_mapping( int base_addr )
-{
-		char *gpio_mem, *gpio_map;
-		
-		if( !mem_fd )
-		{
-			mem_fd = open("/dev/mem", O_RDWR|O_SYNC);
-			if( mem_fd < 0 )
-			{
-				printf("Can't Opem /dev/mem \n");
-				printf("ERRNO: %d\n", errno);
-				exit(-1);
-			}
-		}
-		
-		gpio_mem = malloc(BLOCK_SIZE + (PAGE_SIZE - 1));
-		if( gpio_mem == NULL )  
-		{
-			printf("Memory Allocation Error\n");
-			exit(-1);
-		}
-		
-		if( (unsigned long) gpio_mem % PAGE_SIZE )
-		{
-				gpio_mem += PAGE_SIZE - ((unsigned long)gpio_mem % PAGE_SIZE);
-		}
-		
-		gpio_map = (char *)mmap((caddr_t)gpio_mem,
-								BLOCK_SIZE,
-								PROT_READ|PROT_WRITE,
-								MAP_SHARED|MAP_FIXED,
-								mem_fd,
-								base_addr);
-		if( (signed long)gpio_map < 0 )
-		{
-			printf("mmap error\n");
-			exit(-1);
-		}
-		return (volatile unsigned int*)gpio_map;
 }
