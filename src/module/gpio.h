@@ -4,8 +4,10 @@
 #include "../common/typedef.h"
 
 extern volatile unsigned long gpioOpen( void );
+extern char gpioClose( void );
 extern char gpioToInput( unsigned char gpio_n );
 extern char gpioToOutput( unsigned char gpio_n );
 extern char gpioToHigh( unsigned char gpio_n );
 extern char gpioToLow( unsigned char gpio_n );
+extern char gpioGetLevel( unsigned char gpio_n );
 #endif

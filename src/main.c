@@ -16,11 +16,14 @@ void main(void)
 	// GPIO0: low -> 3s wait -> high -> 3s wait ->...
 	gpio = gpioOpen();
 	gpioToOutput( 0 );
+	
 	while( 1 )
 	{
 		gpioToLow( 0 );
+		printf("%d\n", gpioGetLevel(0));
 		sleep(3);
 		gpioToHigh( 0 );
+		printf("%d\n", gpioGetLevel(0));
 		sleep(3);
 	}
 	

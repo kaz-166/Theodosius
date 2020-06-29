@@ -57,6 +57,7 @@
 #define GPFSEL(n) *((volatile unsigned long*)(gpio + 0x04*n))
 #define GPSET(n) *((volatile unsigned long*)(gpio + GPSET0_OFFSET + 0x04*n))
 #define GPCLR(n) *((volatile unsigned long*)(gpio + GPCLR0_OFFSET + 0x04*n))
+#define GPLEV(n) *((volatile unsigned long*)(gpio + GPLEV0_OFFSET + 0x04*n))
 
 /* Prototype */
 static char gpio_set_to_in_out( unsigned char gpio_n, char in_or_out );
@@ -90,6 +91,17 @@ volatile unsigned long gpioOpen( void )
 #else
 	return wiringPiSetupGpio();
 #endif
+} 
+
+ /****************************************************************************
+ * Close GPIO device driver
+ * 
+ * Input Parameters
+ *       None
+ ****************************************************************************/
+char gpioClose( void )
+{
+	return 0;
 } 
 
 /****************************************************************************
@@ -157,6 +169,26 @@ char gpioToLow( unsigned char gpio_n )
 #else
 	digitalWrite( gpio_n, LOW );
 	return 0;
+#endif
+}
+
+char gpioGetLevel( unsigned char gpio_n )
+{
+#ifndef ENABLE_WIRINGPI
+	char reg_n;
+	unsigned long lev;
+	if( gpio_n < 32 ){
+		lev = GPLEV( 0 ) & (1 << gpio_n); 
+	}else{
+		lev = GPLEV( 1 ) & (1 << gpio_n); 
+	}
+
+	if(lev == 0){
+		return (char)GPIO_LOW;
+	}else{
+		return (char)GPIO_HIGH;
+	}
+#else
 #endif
 }
 
