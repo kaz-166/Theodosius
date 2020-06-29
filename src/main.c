@@ -10,10 +10,21 @@
 
 void main(void)
 {
+	unsigned long * gpio;
 	printf("Theodosius embarkings on!\n");
 	// This is a sample code.
-	gpioOpen();
-	gpioToOutput( 3 );
+	// GPIO0: low -> 3s wait -> high -> 3s wait ->...
+	gpio = gpioOpen();
+	gpioToOutput( 0 );
+	while( 1 )
+	{
+		gpioToLow( 0 );
+		sleep(3);
+		gpioToHigh( 0 );
+		sleep(3);
+	}
+	
 	printf("fin");
+	
 	return;
 }

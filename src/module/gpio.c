@@ -12,8 +12,8 @@
 #include "./mem.h"
 
 /* Macro for conditional compilation */
-#define ENABLE_WIRINGPI
-// #undef ENABLE_WIRINGPI
+//#define ENABLE_WIRINGPI
+#undef ENABLE_WIRINGPI
 #ifdef ENABLE_WIRINGPI
 	#include <wiringPi.h>
 #endif
@@ -36,6 +36,8 @@
 #define GPLEV1_OFFSET  (volatile unsigned long)0x38
 #define GPSET0_OFFSET  (volatile unsigned long)0x1C
 #define GPSET1_OFFSET  (volatile unsigned long)0x20
+#define GPCLR0_OFFSET  (volatile unsigned long)0x28
+#define GPCLR1_OFFSET  (volatile unsigned long)0x2C
 #define GPPCR0_OFFSET  (volatile unsigned long)0xE4
 
 #define GPFSEL0 *((volatile unsigned long*)(gpio + GPFSEL0_OFFSET))
@@ -48,10 +50,13 @@
 #define GPLEV1  *((volatile unsigned long*)(gpio + GPLEV1_OFFSET))
 #define GPSET0  *((volatile unsigned long*)(gpio + GPSET0_OFFSET))
 #define GPSET1  *((volatile unsigned long*)(gpio + GPSET1_OFFSET))
+#define GPCLR0  *((volatile unsigned long*)(gpio + GPCLR0_OFFSET))
+#define GPCLR1  *((volatile unsigned long*)(gpio + GPCLR1_OFFSET))
 #define GPPCR0  *((volatile unsigned long*)(gpio + GPPCR0_OFFSET))
 
 #define GPFSEL(n) *((volatile unsigned long*)(gpio + 0x04*n))
 #define GPSET(n) *((volatile unsigned long*)(gpio + GPSET0_OFFSET + 0x04*n))
+#define GPCLR(n) *((volatile unsigned long*)(gpio + GPCLR0_OFFSET + 0x04*n))
 
 /* Prototype */
 static char gpio_set_to_in_out( unsigned char gpio_n, char in_or_out );
@@ -184,11 +189,11 @@ static char gpio_set_to_in_out( unsigned char gpio_n, char in_or_out )
 	
 	if( in_or_out == GPIO_INPUT )	  /* Input Mode */
 	{
-		GPFSEL( fsel_x ) = GPFSEL( fsel_x ) | (1 << 3*fsel_bit);
+		GPFSEL( fsel_x ) = GPFSEL( fsel_x ) & ~(1 << 3*fsel_bit);
 	}
 	else if( in_or_out == GPIO_OUTPUT ) /* Output Mode */
 	{
-		GPFSEL( fsel_x ) = GPFSEL( fsel_x ) & ~(1 << 3*fsel_bit);
+		GPFSEL( fsel_x ) = GPFSEL( fsel_x ) | (1 << 3*fsel_bit);
 	}
 	else
 	{
@@ -224,18 +229,18 @@ static char gpio_set_level( unsigned char gpio_n, char low_or_high )
 		}
 		else
 		{
-			GPSET( 1 ) = GPSET( 1 ) | (1 << (gpio_n % 32 ));
+			GPSET( 1 ) = GPSET( 1 ) | (1 << (gpio_n % 32));
 		}
 	}
 	else if( low_or_high == GPIO_LOW )
 	{
 		if( gpio_n < 32 )
 		{
-			GPSET( 0 ) = GPSET( 0 ) & ~(1 << gpio_n);
+			GPCLR( 0 ) = GPCLR( 0 ) | (1 << gpio_n);
 		}
 		else
 		{
-			GPSET( 1 ) = GPSET( 1 ) & ~(1 << (gpio_n % 32 ));
+			GPCLR( 1 ) = GPCLR( 1 ) | (1 << (gpio_n % 32 ));
 		}
 	}
 	else
