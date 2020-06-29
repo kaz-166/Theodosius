@@ -6,15 +6,14 @@
 #include "./common/typedef.h"
 #include "./module/mem.h"
 #include "./module/gpio.h"
+#include <unistd.h>
 
 void main(void)
 {
 	printf("Theodosius embarkings on!\n");
+	// This is a sample code.
 	gpioOpen();
-	gpioToInput( 0 );
-	mem_show( MEM_GPIO );
-	// mem_show( MEM_AUX);
-	// mem_show( MEM_EMMC );
+	gpioToOutput( 3 );
 	printf("fin");
 	return;
 }

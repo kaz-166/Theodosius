@@ -11,10 +11,20 @@
 #include "../common/typedef.h"
 #include "./mem.h"
 
+/* Macro for conditional compilation */
+#define ENABLE_WIRINGPI
+// #undef ENABLE_WIRINGPI
+#ifdef ENABLE_WIRINGPI
+	#include <wiringPi.h>
+#endif
+
 #define TOTAL_NUM_OF_GPIOs 41
 
 #define GPIO_INPUT  0
 #define GPIO_OUTPUT 1
+
+#define GPIO_LOW  0
+#define GPIO_HIGH 1
 
 #define GPFSEL0_OFFSET (volatile unsigned long)0x00
 #define GPFSEL1_OFFSET (volatile unsigned long)0x04
@@ -26,7 +36,7 @@
 #define GPLEV1_OFFSET  (volatile unsigned long)0x38
 #define GPSET0_OFFSET  (volatile unsigned long)0x1C
 #define GPSET1_OFFSET  (volatile unsigned long)0x20
-#define GPPCR0_OFFSET (volatile unsigned long)0xE4
+#define GPPCR0_OFFSET  (volatile unsigned long)0xE4
 
 #define GPFSEL0 *((volatile unsigned long*)(gpio + GPFSEL0_OFFSET))
 #define GPFSEL1 *((volatile unsigned long*)(gpio + GPFSEL1_OFFSET))
@@ -41,79 +51,117 @@
 #define GPPCR0  *((volatile unsigned long*)(gpio + GPPCR0_OFFSET))
 
 #define GPFSEL(n) *((volatile unsigned long*)(gpio + 0x04*n))
+#define GPSET(n) *((volatile unsigned long*)(gpio + GPSET0_OFFSET + 0x04*n))
 
 /* Prototype */
-static char gpioSetInOut( unsigned char gpio_n, char in_or_out );
+static char gpio_set_to_in_out( unsigned char gpio_n, char in_or_out );
+static char gpio_set_level( unsigned char gpio_n, char low_or_high );
+
 
 /* Global variables */
 volatile unsigned long gpio;
 static unsigned char is_open = FALSE;
 
+/****************************************************************************
+ *
+ *  EXTERNAL FUNCTIONS
+ * 
+ ****************************************************************************/
+ 
+ /****************************************************************************
+ * Initialize GPIO device driver
+ * 
+ * Input Parameters
+ *       None
+ ****************************************************************************/
 volatile unsigned long gpioOpen( void )
 {
 	/* Mapping */    
+#ifndef ENABLE_WIRINGPI
 	gpio = mem_mapping( MEM_GPIO );
 	is_open = TRUE;
 	
 	return gpio;
+#else
+	return wiringPiSetupGpio();
+#endif
 } 
 
 /****************************************************************************
+ * Set GPIO Input mode
+ * 
  * Input Parameters
  * @gpio_n: Number of GPIO Pin
  * (If you want to set GPIO3 to input mode for example, please set gpio_n=3.)
  ****************************************************************************/
 char gpioToInput( unsigned char gpio_n )
 {
-	return gpioSetInOut( gpio_n, GPIO_INPUT );
+#ifndef ENABLE_WIRINGPI
+	return gpio_set_to_in_out( gpio_n, GPIO_INPUT );
+#else
+	pinMode( gpio_n, INPUT );
+	return 0;
+#endif
 }
 
 /****************************************************************************
+ * Set GPIO output mode
+ * 
  * Input Parameters
  * @gpio_n: Number of GPIO Pin
  * (If you want to set GPIO3 to output mode for example, please set gpio_n=3.)
  ****************************************************************************/
 char gpioToOutput( unsigned char gpio_n )
 {
-	return gpioSetInOut( gpio_n, GPIO_OUTPUT );
+#ifndef ENABLE_WIRINGPI
+	return gpio_set_to_in_out( gpio_n, GPIO_OUTPUT );
+#else
+	pinMode( gpio_n, OUTPUT );
+	return 0;
+#endif
 }
 
+/****************************************************************************
+ * Set GPIO High
+ * 
+ * Input Parameters
+ * @gpio_n: Number of GPIO Pin
+ * (If you want to set GPIO3 to high for example, please set gpio_n=3.)
+ ****************************************************************************/
 char gpioToHigh( unsigned char gpio_n )
 {
-	/* Under Construction */
-	/* Validation of input gpio_n */
-	if( gpio_n >= TOTAL_NUM_OF_GPIOs )
-	{
-		printf("[FATAL] gpioSetInOut:Too big gpio_n was given.\n");
-		return -1;
-	}
-	
-	if( is_open == FALSE )
-	{
-		printf("[FATAL] gpioSetInOut:There was an access to GPIO although GPIO module was not opend.\n");
-		return -1;
-	}
+#ifndef ENABLE_WIRINGPI
+	return gpio_set_level( gpio_n, GPIO_HIGH );
+#else
+	digitalWrite( gpio_n, HIGH );
+	return 0;
+#endif
 }
 
+/****************************************************************************
+ * Set GPIO Low
+ * 
+ * Input Parameters
+ * @gpio_n: Number of GPIO Pin
+ * (If you want to set GPIO3 to low for example, please set gpio_n=3.)
+ ****************************************************************************/
 char gpioToLow( unsigned char gpio_n )
 {
-	/* Under Construction */
-	/* Validation of input gpio_n */
-	if( gpio_n >= TOTAL_NUM_OF_GPIOs )
-	{
-		printf("[FATAL] gpioSetInOut:Too big gpio_n was given.\n");
-		return -1;
-	}
-	
-	if( is_open == FALSE )
-	{
-		printf("[FATAL] gpioSetInOut:There was an access to GPIO although GPIO module was not opend.\n");
-		return -1;
-	}
+#ifndef ENABLE_WIRINGPI
+	return gpio_set_level( gpio_n, GPIO_LOW );
+#else
+	digitalWrite( gpio_n, LOW );
+	return 0;
+#endif
 }
 
 
-static char gpioSetInOut( unsigned char gpio_n, char in_or_out )
+/****************************************************************************
+ *
+ *  INTERNAL FUNCTIONS
+ * 
+ ****************************************************************************/
+static char gpio_set_to_in_out( unsigned char gpio_n, char in_or_out )
 {
 	unsigned char fsel_x = 0;
 	unsigned char fsel_bit = 0;
@@ -121,13 +169,13 @@ static char gpioSetInOut( unsigned char gpio_n, char in_or_out )
 	/* Validation of input gpio_n */
 	if( gpio_n >= TOTAL_NUM_OF_GPIOs )
 	{
-		printf("[FATAL] gpioSetInOut:Too big gpio_n was given.\n");
+		printf("[FATAL] gpio_set_inOut:Too big gpio_n was given.\n");
 		return -1;
 	}
 	
 	if( is_open == FALSE )
 	{
-		printf("[FATAL] gpioSetInOut:There was an access to GPIO although GPIO module was not opend.\n");
+		printf("[FATAL] gpio_set_inOut:There was an access to GPIO although GPIO module was not opend.\n");
 		return -1;
 	}
 	
@@ -144,8 +192,57 @@ static char gpioSetInOut( unsigned char gpio_n, char in_or_out )
 	}
 	else
 	{
-		printf("[FATAL] gpioSetInOut:Invalid input params.\n");
+		printf("[FATAL] gpio_set_inOut:Invalid input params.\n");
 		return -1;
 	}
 	return 0;
 }
+
+
+static char gpio_set_level( unsigned char gpio_n, char low_or_high )
+{
+	char reg_n;
+	
+	/* Validation of input gpio_n */
+	if( gpio_n >= TOTAL_NUM_OF_GPIOs )
+	{
+		printf("[FATAL] gpio_set_level:Too big gpio_n was given.\n");
+		return -1;
+	}
+	
+	if( is_open == FALSE )
+	{
+		printf("[FATAL] gpio_set_level:There was an access to GPIO although GPIO module was not opend.\n");
+		return -1;
+	}
+	
+	if( low_or_high == GPIO_HIGH )
+	{
+		if( gpio_n < 32 )
+		{
+			GPSET( 0 ) = GPSET( 0 ) | (1 << gpio_n);
+		}
+		else
+		{
+			GPSET( 1 ) = GPSET( 1 ) | (1 << (gpio_n % 32 ));
+		}
+	}
+	else if( low_or_high == GPIO_LOW )
+	{
+		if( gpio_n < 32 )
+		{
+			GPSET( 0 ) = GPSET( 0 ) & ~(1 << gpio_n);
+		}
+		else
+		{
+			GPSET( 1 ) = GPSET( 1 ) & ~(1 << (gpio_n % 32 ));
+		}
+	}
+	else
+	{
+		printf("[FATAL] gpio_set_level:Invalid input params.\n");
+		return -1;
+	}
+	return 0;
+}
+

@@ -9,7 +9,7 @@
 #define BLOCK_SIZE 4096
 #define PAGE_SIZE  4096
 
-#define BASE_ADDR (unsigned long)0x20000000
+#define BASE_ADDR (unsigned long)0xFE000000
 /* Auxilliaries(UART, SPI1 and SPI2) Registers */
 #define AUX_BASE_REG_ADDR  BASE_ADDR + (unsigned long)0x00215000
 #define AUX_START_REG_ADDR AUX_BASE_REG_ADDR
@@ -99,8 +99,8 @@ volatile unsigned long mem_mapping( MemoryAddress mem_addr )
 	
 	map = (unsigned long)mmap((caddr_t)mem,
 							BLOCK_SIZE,
-							PROT_READ|PROT_WRITE,
-							MAP_SHARED|MAP_FIXED,
+							PROT_READ|PROT_WRITE|PROT_EXEC,
+							MAP_SHARED|MAP_LOCKED,
 							mem_fd,
 							base_addr);
 	printf("mmap: allocated   %x \n", map);
