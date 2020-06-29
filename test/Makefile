@@ -1,5 +1,5 @@
 Theodosious_test: ./test.o ../src/module/gpio.o ../src/module/mem.o
-	gcc -o ./Theodosious_test ./test.o ../src/module/gpio.o ../src/module/mem.o
+	gcc -o ./Theodosious_test ./test.o ../src/module/gpio.o ../src/module/mem.o -Wall -L/usr/local/lib -lcunit
 main.o:	./test.c
 	gcc -c ./test.c
 gpio.o: ../src/module/gpio.c

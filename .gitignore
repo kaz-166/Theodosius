@@ -7,3 +7,6 @@
 
 # Ignore goutputstream files
 /src/module/.*
+
+# Ignore CUnit
+/test/Cunit*

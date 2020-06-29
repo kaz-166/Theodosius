@@ -1,8 +1,11 @@
 #include<stdio.h>
 #include "../src/module/gpio.h"
 #include "../src/common/typedef.h"
+#include <CUnit/CUnit.h>
+#include <CUnit/Console.h>
 
 static void gpioTest( void );
+static void test_gpio_set( void );
 
 void main(void)
 {
@@ -13,28 +16,31 @@ void main(void)
 
 static void gpioTest( void )
 {
-	unsigned char results[64];
-	unsigned char test_num = 0;
+	CU_pSuite gpio_suite;
+	
+	CU_initialize_registry();
+	gpio_suite = CU_add_suite("gpio_test", 0, 0);
+	/*********************
+	* Test about gpioToOutput()
+	*********************/
+	CU_add_test(gpio_suite, "GPIO SET", test_gpio_set);
+	CU_console_run_tests();
+	CU_cleanup_registry();
+
+}
+
+static void test_gpio_set( void )
+{
 	volatile unsigned long gpio;
 	
 	gpio = gpioOpen();
 	
-	/*********************
-	* Test about gpioToOutput()
-	*********************/
 	gpioToOutput(0);
-	((*(volatile unsigned long*)(gpio) && 1 != 0)) ? (results[0] = TRUE) : (results[0] = FALSE);
-	test_num++;
-	
-	for( int i = 0; i < test_num; i++ )
-	{
-		if( results[i] == TRUE )
-		{
-			printf("GPIO TEST[%d] SUCCESS\n", i);
-		}
-		else
-		{
-			printf("GPIO TEST[%d] FAIL\n", i);
-		}
-	}
+	/* GPIO0 to Low */
+	gpioToLow( 0 );
+	CU_ASSERT( gpioGetLevel(0) == GPIO_LOW );
+
+	/* GPIO0 to High */
+	gpioToHigh( 0 );
+	CU_ASSERT( gpioGetLevel(0) == GPIO_HIGH );
 }

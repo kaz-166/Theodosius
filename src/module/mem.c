@@ -95,7 +95,6 @@ volatile unsigned long mem_mapping( MemoryAddress mem_addr )
 	{
 		mem += PAGE_SIZE - ((unsigned long)mem % PAGE_SIZE);
 	}
-	printf("mmap: base_addr   %x \n", base_addr);
 	
 	map = (unsigned long)mmap((caddr_t)mem,
 							BLOCK_SIZE,
@@ -103,8 +102,6 @@ volatile unsigned long mem_mapping( MemoryAddress mem_addr )
 							MAP_SHARED|MAP_LOCKED,
 							mem_fd,
 							base_addr);
-	printf("mmap: allocated   %x \n", map);
-	printf("-------------------------------------------\n");
 
 	return (volatile unsigned long)map;
 }

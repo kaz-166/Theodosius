@@ -10,6 +10,7 @@
 #include <errno.h>
 #include "../common/typedef.h"
 #include "./mem.h"
+#include "./gpio.h" 
 
 /* Macro for conditional compilation */
 //#define ENABLE_WIRINGPI
@@ -22,9 +23,6 @@
 
 #define GPIO_INPUT  0
 #define GPIO_OUTPUT 1
-
-#define GPIO_LOW  0
-#define GPIO_HIGH 1
 
 #define GPFSEL0_OFFSET (volatile unsigned long)0x00
 #define GPFSEL1_OFFSET (volatile unsigned long)0x04
